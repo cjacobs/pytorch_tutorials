@@ -55,9 +55,15 @@ We will do the following steps in order:
 
 Using ``torchvision``, it’s extremely easy to load CIFAR10.
 """
+
+import os
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
+DATASET_DIR = "/Users/cjacobs/Work/ID/Datasets/pytorch"
+CIFAR_DATASET_DIR = os.path.join(DATASET_DIR, "cifar-10")
 
 ########################################################################
 # The output of torchvision datasets are PILImage images of range [0, 1].
@@ -67,12 +73,12 @@ transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+trainset = torchvision.datasets.CIFAR10(root=CIFAR_DATASET_DIR, train=True,
                                         download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                           shuffle=True, num_workers=2)
 
-testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+testset = torchvision.datasets.CIFAR10(root=CIFAR_DATASET_DIR, train=False,
                                        download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                          shuffle=False, num_workers=2)
@@ -155,7 +161,8 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 # We simply have to loop over our data iterator, and feed the inputs to the
 # network and optimize.
 
-for epoch in range(2):  # loop over the dataset multiple times
+NUM_EPOCHS = 10
+for epoch in range(NUM_EPOCHS):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -258,6 +265,10 @@ with torch.no_grad():
 for i in range(10):
     print('Accuracy of %5s : %2d %%' % (
         classes[i], 100 * class_correct[i] / class_total[i]))
+
+input_tensor = trainset[0][0]
+torch.onnx._export(net, input_tensor, './cifar-10.onnx', export_params=True, verbose=True)
+
 
 ########################################################################
 # Okay, so what next?
